@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="browserPageTitle">Toko Sembako MAULANA</title>
+  <link rel="icon" id="browserFavicon" href="">
+  <link rel="stylesheet" href="style.css">
+  <!-- Library JSBarcode untuk Render Barcode SVG -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js"></script>
+  <!-- Library HTML5-Qrcode untuk Kamera & Scan Gambar Upload -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+
+  <!-- PAGE LOGIN -->
+  <div id="loginPage" class="login-wrapper hidden">
+    <div class="login-card">
+      <div class="login-header">
+        <h2 id="loginPortalTitle">Toko Sembako MAULANA</h2>
+        <p id="loginPortalSubtitle">Sistem Manajemen Toko & Kasir</p>
+      </div>
+      <form onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" id="loginUsername" class="form-control" required placeholder="Masukkan username">
+        </div>
+        <div class="form-group" style="margin-top: 12px;">
+          <label>Password</label>
+          <input type="password" id="loginPassword" class="form-control" required placeholder="Masukkan password">
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 20px;">Masuk Aplikasi</button>
+      </form>
+      <div class="login-footer" id="loginFooterCopyright">© 2026 Toko Sembako MAULANA</div>
+    </div>
+  </div>
+
+  <!-- CONTAINER UTAMA APLIKASI -->
+  <div id="appContainer" class="app-container hidden">
+
+    <!-- SIDEBAR NAVIGASI -->
+    <aside class="sidebar no-print" id="appSidebar">
+      <div class="sidebar-header">
+        <img id="navBrandImg" class="sidebar-logo hidden" alt="Logo">
+        <span id="navBrandText" class="sidebar-title">Toko Sembako MAULANA</span>
+      </div>
+
+      <nav class="sidebar-menu">
+        <button class="nav-btn active" data-tab="berandaTab" onclick="showTab('berandaTab')">
+          <span>🏠</span> Beranda
+        </button>
+        <button class="nav-btn" data-tab="pengeluaranTab" onclick="showTab('pengeluaranTab')">
+          <span>📁</span> Data Pengeluaran & Barcode
+        </button>
+        <button class="nav-btn" data-tab="barangTab" onclick="showTab('barangTab')">
+          <span>📦</span> Data Barang
+        </button>
+        <button class="nav-btn" data-tab="kasirTab" onclick="showTab('kasirTab')">
+          <span>🛒</span> Transaksi Kasir
+        </button>
+        <button class="nav-btn" data-tab="scannerTab" onclick="showTab('scannerTab')">
+          <span>📷</span> Scanner Barcode (Kamera/Upload)
+        </button>
+        <button class="nav-btn" data-tab="transaksiTab" onclick="showTab('transaksiTab')">
+          <span>📜</span> Data Transaksi
+        </button>
+        <button class="nav-btn" data-tab="laporanTab" onclick="showTab('laporanTab')">
+          <span>📊</span> Laporan & Cetak
+        </button>
+        <button class="nav-btn" data-tab="profilTab" onclick="showTab('profilTab')">
+          <span>⚙️</span> Profil & Toko
+        </button>
+      
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <img id="navUserAvatarImg" class="avatar-small hidden" alt="Avatar">
+          <span id="navUserAvatarIcon" class="avatar-icon-placeholder">👤</span>
+          <span id="sidebarUserText">Halo, admin</span>
+        </div>
+        <button class="btn-power" onclick="logout()">⏻</button>
+      </div>
+    </aside>
+
+    <!-- KONTEN UTAMA -->
+    <main class="main-content">
+      <header class="topbar no-print">
+        <button class="mobile-toggle" onclick="toggleMobileSidebar()">☰</button>
+        <div class="topbar-right">
+          <div class="notification-wrapper">
+            <button class="notif-btn" onclick="toggleNotifDropdown()">
+              🔔 <span class="badge-notif" id="notifCount">0</span>
+            </button>
+            <div id="notifDropdown" class="notif-dropdown hidden">
+              <h4>Peringatan Stok & Expired</h4>
+              <div id="notifListContainer"></div>
+            </div>
+          </div>
+          <span id="userDisplayName" style="font-weight: 600;">admin</span>
+        </div>
+      </header>
+
+      <!-- TAB 1: BERANDA -->
+      <section id="berandaTab" class="tab-content active">
+        <div class="banner-welcome">
+          <div class="banner-text">
+            <h1 id="bannerStoreName">Toko Sembako MAULANA</h1>
+            <p id="bannerAlamat">Jl. Bojonegoro Kp. Kernaden rt 05 05</p>
+            <p id="bannerTelp">Telp: 087877611218</p>
+          </div>
+          <div class="banner-logo">
+            <img id="bannerLogoImg" class="hidden" alt="Logo Banner">
+            <span id="bannerLogoIcon">🏪</span>
+          </div>
+        </div>
+
+        <div class="stats-grid" style="margin-top: 20px;">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#e0e7ff; color:#4f46e5;">📦</div>
+            <div>
+              <h3>Total Barang</h3>
+              <p id="statTotalBarang">0</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#dcfce7; color:#16a34a;">💰</div>
+            <div>
+              <h3>Total Transaksi</h3>
+              <p id="statTotalTransaksi">0</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#fee2e2; color:#dc2626;">💸</div>
+            <div>
+              <h3>Data Pengeluaran</h3>
+              <p id="statTotalPengeluaran">0</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+          <h3>📊 Ringkasan Keuangan Toko</h3>
+          <div class="fin-summary-grid" style="margin-top: 15px;">
+            <div class="fin-box">
+              <span>Total Pengeluaran Kas</span>
+              <h4 id="finPengeluaran" style="color:#dc2626;">Rp 0</h4>
+            </div>
+            <div class="fin-box">
+              <span>Total Nilai Stok Barang</span>
+              <h4 id="finPembelianStok" style="color:#2563eb;">Rp 0</h4>
+            </div>
+            <div class="fin-box">
+              <span>Total Omset Penjualan</span>
+              <h4 id="finOmset" style="color:#16a34a;">Rp 0</h4>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: DATA PENGELUARAN & BARCODE -->
+      <section id="pengeluaranTab" class="tab-content">
+        <div class="card collapsible-card collapsed" id="pengeluaranFormCard">
+          <div class="card-header" onclick="toggleForm('pengeluaranFormCard', 'pengeluaranToggleIcon')">
+            <h2>➕ Tambah Data Pengeluaran Baru</h2>
+            <span id="pengeluaranToggleIcon">▼</span>
+          </div>
+          <form id="pengeluaranForm" onsubmit="savePengeluaran(event)" class="card-body">
+            <input type="hidden" id="pengeluaranEditIndex">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Tanggal</label>
+                <input type="date" id="pengTgl" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label>Keterangan / Nama Barang</label>
+                <input type="text" id="pengKeterangan" class="form-control" required placeholder="Contoh: Beras, Aqua, Roko">
+              </div>
+              <div class="form-group">
+                <label>Harga Modal (Rp)</label>
+                <input type="number" id="pengHargaModal" class="form-control" required min="0">
+              </div>
+              <div class="form-group">
+                <label>Harga Jual (Rp)</label>
+                <input type="number" id="pengHargaJual" class="form-control" required min="0">
+              </div>
+              <div class="form-group">
+                <label>Kode Barcode Barang</label>
+                <input type="text" id="pengBarcodeCode" class="form-control" required placeholder="Ketik kode barcode..." oninput="previewLiveBarcode()">
+              </div>
+            </div>
+            <div style="margin-top: 15px; text-align: center;">
+              <svg id="liveBarcodeSvg"></svg>
+            </div>
+            <div style="margin-top: 15px; display: flex; gap: 10px;">
+              <button type="submit" class="btn btn-primary">Simpan Pengeluaran</button>
+              <button type="button" class="btn btn-secondary" onclick="resetPengeluaranForm()">Batal</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+          <div class="table-header-tools">
+            <h2>Tampilan Data Pengeluaran & Barcode</h2>
+            <input type="text" id="searchPengeluaranInput" class="form-control" placeholder="Cari barang / barcode..." oninput="renderPengeluaranTable()" style="max-width: 250px;">
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Tanggal</th>
+                  <th>Keterangan / Barang</th>
+                  <th>Harga Modal</th>
+                  <th>Harga Jual</th>
+                  <th>Kode Barcode</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="pengeluaranTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: DATA BARANG -->
+      <section id="barangTab" class="tab-content">
+        <div class="card collapsible-card collapsed" id="barangFormCard">
+          <div class="card-header" onclick="toggleForm('barangFormCard', 'barangToggleIcon')">
+            <h2>➕ Tambah Data Barang Stok (Dari Data Pengeluaran)</h2>
+            <span id="barangToggleIcon">▼</span>
+          </div>
+          <form id="barangForm" onsubmit="saveBarang(event)" class="card-body">
+            <input type="hidden" id="barangEditIndex">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Nama Barang (Pilih dari Pengeluaran)</label>
+                <input type="text" id="barNama" class="form-control" list="listPengeluaranBarang" required placeholder="Ketik nama barang..." onchange="onInputBarangNama(this.value)">
+                <datalist id="listPengeluaranBarang"></datalist>
+              </div>
+              <div class="form-group">
+                <label>Kode Barcode (Otomatis)</label>
+                <input type="text" id="barKode" class="form-control" readonly placeholder="Terisi otomatis...">
+              </div>
+              <div class="form-group">
+                <label>Jumlah Stok</label>
+                <input type="number" id="barStok" class="form-control" required min="0" placeholder="0">
+              </div>
+              <div class="form-group">
+                <label>Satuan</label>
+                <select id="barSatuan" class="form-control">
+                  <option value="Karung">Karung</option>
+                  <option value="Bungkus">Bungkus</option>
+                  <option value="Botol">Botol</option>
+                  <option value="Pcs">Pcs</option>
+                  <option value="Dus">Dus</option>
+                  <option value="Kg">Kg</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Tanggal Kadaluarsa</label>
+                <input type="date" id="barExpired" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>Harga Modal (Rp)</label>
+                <input type="number" id="barHargaModal" class="form-control" readonly>
+              </div>
+              <div class="form-group">
+                <label>Harga Jual (Rp)</label>
+                <input type="number" id="barHargaJual" class="form-control" readonly>
+              </div>
+            </div>
+            <div style="margin-top: 15px; display: flex; gap: 10px;">
+              <button type="submit" class="btn btn-primary">Simpan Stok Barang</button>
+              <button type="button" class="btn btn-secondary" onclick="resetBarangForm()">Batal</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+          <div class="table-header-tools">
+            <h2>Tampilan Data Barang</h2>
+            <input type="text" id="searchBarangInput" class="form-control" placeholder="Cari nama / kode barang.." oninput="renderBarangTable()" style="max-width: 250px;">
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Kode Barcode (Visual Besar)</th>
+                  <th>Nama Barang</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="barangTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 4: TRANSAKSI KASIR MANUAL -->
+      <section id="kasirTab" class="tab-content">
+        <div class="card">
+          <h2 id="kasirFormTitle">🛒 Kasir Penjualan Toko Sembako</h2>
+          <input type="hidden" id="transaksiEditIndex">
+          
+          <div class="kasir-grid" style="margin-top: 15px;">
+            <div class="kasir-input-area">
+              <div class="form-group" style="position: relative;">
+                <label>Ketik Nama Barang / Scan Barcode</label>
+                <input type="text" id="kasirBarangInput" class="form-control" placeholder="Ketik nama atau scan barcode..." oninput="onKetikCariBarang()">
+                <input type="hidden" id="selectedKasirBarangIndex">
+                <div id="autocompleteDropdown" class="autocomplete-box hidden"></div>
+              </div>
+              
+              <div class="form-group" style="margin-top: 10px;">
+                <label>Jumlah Beli</label>
+                <input type="number" id="kasirQty" class="form-control" value="1" min="1">
+              </div>
+
+              <button type="button" class="btn btn-primary" style="margin-top: 15px; width: 100%;" onclick="tambahItemKeranjang()">➕ Tambah ke Keranjang</button>
+            </div>
+
+            <!-- Preview Barcode Pilihan Kasir -->
+            <div class="kasir-barcode-preview-card">
+              <h4>Gambar Barcode Produk:</h4>
+              <div id="kasirBarcodePreviewArea" class="barcode-display-box hidden">
+                <svg id="kasirBarcodeSvg"></svg>
+                <button type="button" class="btn btn-secondary btn-sm" style="margin-top: 8px;" onclick="downloadKasirBarcodePNG()">📥 Download PNG</button>
+              </div>
+              <div id="kasirBarcodePlaceholder" class="barcode-placeholder">
+                [ Ketik atau pilih barang untuk menampilkan barcode ]
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabel Keranjang Belanja -->
+          <div class="table-responsive" style="margin-top: 20px;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Nama Barang</th>
+                  <th>Barcode</th>
+                  <th>Harga Satuan</th>
+                  <th>Qty</th>
+                  <th>Subtotal</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="keranjangTbody"></tbody>
+            </table>
+          </div>
+
+          <!-- Summary Kasir & Form Bayar -->
+          <div class="kasir-summary-panel" style="margin-top: 20px;">
+            <h2>Total Belanja: <span id="kasirTotalDisplay" style="color: #16a34a;">Rp 0</span></h2>
+            <div class="form-group" style="max-width: 300px; margin-top: 10px;">
+              <label>Jumlah Bayar Tunai (Rp)</label>
+              <input type="number" id="kasirBayar" class="form-control" placeholder="0" oninput="hitungKembalian()">
+            </div>
+            <h3 style="margin-top: 10px;">Kembalian: <span id="kasirKembalianDisplay" style="color: #2563eb;">Rp 0</span></h3>
+
+            <div style="margin-top: 15px; display: flex; gap: 10px;">
+              <button type="button" class="btn btn-success" id="btnSimpanTransaksi" onclick="prosesPembayaran()">✅ Selesaikan Transaksi</button>
+              <button type="button" class="btn btn-secondary hidden" id="btnBatalEditTransaksi" onclick="batalEditTransaksi()">Batal Edit</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 5: SCANNER BARCODE (KAMERA & UPLOAD) -->
+      <section id="scannerTab" class="tab-content">
+        <div class="scanner-container">
+          <header class="scanner-header">
+            <h2>📷 Barcode Scanner & Upload Kasir</h2>
+            <p>Scan langsung menggunakan kamera atau unggah foto/gambar barcode produk</p>
+          </header>
+
+          <div class="card scanner-box">
+            <div class="scanner-tabs">
+              <button type="button" class="tab-btn active" onclick="switchMode('camera')" id="btnTabCamera">📷 Kamera Live</button>
+              <button type="button" class="tab-btn" onclick="switchMode('upload')" id="btnTabUpload">📁 Unggah Gambar</button>
+            </div>
+
+            <!-- Mode Kamera -->
+            <div id="cameraSection" class="scanner-section">
+              <div id="reader"></div>
+              <div class="scanner-status" id="scannerStatus">Kamera siap memindai...</div>
+            </div>
+
+            <!-- Mode Upload File Gambar Barcode -->
+            <div id="uploadSection" class="scanner-section hidden">
+              <div class="upload-dropzone" onclick="document.getElementById('barcodeFileInput').click()">
+                <span style="font-size: 2.5rem;">📂</span>
+                <p>Klik di sini untuk memilih foto/gambar barcode</p>
+                <span class="upload-hint">Format: JPG, PNG, JPEG</span>
+              </div>
+              <input type="file" id="barcodeFileInput" class="hidden" accept="image/*" onchange="scanImageFromFile(event)">
+              <div id="uploadStatus" class="scanner-status"></div>
+            </div>
+          </div>
+
+          <!-- Panel Hasil Scan & Input Manual -->
+          <div class="card" style="margin-top: 15px;">
+            <h3>🔍 Hasil Deteksi Produk</h3>
+            <div class="form-group" style="margin-top: 10px;">
+              <label>Kode Barcode Terdeteksi</label>
+              <input type="text" id="scanResultCode" class="form-control" placeholder="Kode barcode akan muncul otomatis di sini..." oninput="cariProdukByBarcodeScanner(this.value)">
+            </div>
+
+            <div id="productDetailInfo" class="product-info-card hidden" style="margin-top: 15px;">
+              <div class="info-row"><span>Nama Barang:</span> <b id="infoNama">-</b></div>
+              <div class="info-row"><span>Stok Tersedia:</span> <span id="infoStok">-</span></div>
+              <div class="info-row"><span>Harga Jual:</span> <b id="infoHarga">-</b></div>
+              <div class="info-row"><span>Status Kadaluarsa:</span> <span id="infoStatusKadaluarsa">-</span></div>
+              
+              <div class="form-group" style="margin-top: 10px;">
+                <label>Jumlah Beli (Qty)</label>
+                <input type="number" id="scanQty" class="form-control" value="1" min="1">
+              </div>
+              <button type="button" class="btn btn-success" style="width: 100%; margin-top: 12px;" onclick="tambahKeKeranjangScanner()">🛒 Masukkan ke Keranjang Kasir</button>
+            </div>
+            <div id="productNotFound" class="not-found-text hidden">⚠️ Produk dengan barcode tersebut tidak ditemukan di Data Barang Sembako.</div>
+          </div>
+
+          <!-- Keranjang Belanja Scanner -->
+          <div class="card" style="margin-top: 15px;">
+            <h3>🛒 Keranjang Kasir Scanner</h3>
+            <div class="table-responsive" style="margin-top: 10px;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>Nama Barang</th>
+                    <th>Harga</th>
+                    <th>Qty</th>
+                    <th>Subtotal</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="keranjangScannerTbody">
+                  <tr><td colspan="6" style="text-align: center; color: #777;">Keranjang kosong.</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="kasir-summary-box" style="margin-top: 15px;">
+              <h3>Total: <span id="scannerTotalDisplay" style="color: #16a34a;">Rp 0</span></h3>
+              <div class="form-group" style="margin-top: 10px; max-width: 250px;">
+                <label>Bayar Tunai (Rp)</label>
+                <input type="number" id="scannerBayar" class="form-control" oninput="hitungKembalianScanner()">
+              </div>
+              <h3 style="margin-top: 10px;">Kembalian: <span id="scannerKembalianDisplay" style="color: #2563eb;">Rp 0</span></h3>
+              <button type="button" class="btn btn-primary" style="margin-top: 12px; width: 100%;" onclick="selesaikanTransaksiScanner()">✅ Selesaikan & Simpan Transaksi</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 6: DATA TRANSAKSI (DENGAN COLLAPSE/EXPAND FILTER) -->
+      <section id="transaksiTab" class="tab-content">
+        <div class="card collapsible-card collapsed" id="filterTransaksiFormCard">
+          <div class="card-header" onclick="toggleForm('filterTransaksiFormCard', 'filterTransaksiToggleIcon')">
+            <h2>💾 Simpan & Filter Data Transaksi</h2>
+            <span id="filterTransaksiToggleIcon">▼</span>
+          </div>
+          <div class="card-body" style="margin-top: 15px;">
+            <div class="transaksi-filter-grid">
+              <button type="button" class="btn btn-primary" onclick="filterSimpanTransaksi('harian')">📥 Simpan / Filter Harian</button>
+              <button type="button" class="btn btn-primary" onclick="filterSimpanTransaksi('mingguan')">📥 Simpan / Filter Mingguan</button>
+              <button type="button" class="btn btn-primary" onclick="filterSimpanTransaksi('bulanan')">📥 Simpan / Filter Bulanan</button>
+              <button type="button" class="btn btn-primary" onclick="filterSimpanTransaksi('tahunan')">📥 Simpan / Filter Tahunan</button>
+              <button type="button" class="btn btn-secondary" onclick="filterSimpanTransaksi('all')">🔄 Tampilkan Semua</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card print-area" style="margin-top: 20px;">
+          <div class="print-header">
+            <h2 id="printHeaderCompanyName">Toko Sembako MAULANA</h2>
+            <p id="printHeaderCompanyAlamat">Jl. Bojonegoro Kp. Kernaden rt 05 05</p>
+          </div>
+          <div class="table-header-tools">
+            <h2 id="riwayatHeaderTitle">📜 Riwayat Data Transaksi Penjualan (Semua)</h2>
+            <button type="button" class="btn btn-success no-print" onclick="cetakDataTransaksiTerfilter()">🖨️ Cetak Rekap Transaksi</button>
+          </div>
+          <div class="table-responsive" style="margin-top: 15px;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Nama Barang Utama</th>
+                  <th>Waktu Transaksi</th>
+                  <th>Jumlah Item</th>
+                  <th>Total Belanja</th>
+                  <th class="no-print">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="riwayatTransaksiTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 7: LAPORAN & CETAK -->
+      <section id="laporanTab" class="tab-content">
+        <div class="card no-print">
+          <h2>📊 Filter Laporan Penjualan</h2>
+          <div class="form-grid" style="margin-top: 15px;">
+            <div class="form-group">
+              <label>Pilih Barang (Opsional)</label>
+              <select id="laporanBarangSelect" class="form-control">
+                <option value="">-- Semua Barang --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Dari Tanggal</label>
+              <input type="date" id="laporanTglDari" class="form-control">
+            </div>
+            <div class="form-group">
+              <label>S.d Tanggal</label>
+              <input type="date" id="laporanTglSampai" class="form-control">
+            </div>
+          </div>
+          <div style="margin-top: 15px; display: flex; gap: 10px;">
+            <button type="button" class="btn btn-primary" onclick="filterLaporan()">🔎 Filter Laporan</button>
+            <button type="button" class="btn btn-secondary" onclick="cetakRekapLaporan()">🖨️ Cetak Rekap Laporan</button>
+          </div>
+        </div>
+
+        <div class="card print-area" style="margin-top: 20px;">
+          <div class="print-header text-center">
+            <h2 id="dashboardCompanyName">Toko Sembako MAULANA</h2>
+            <p id="dashboardCompanyAlamat">Jl. Bojonegoro Kp. Kernaden rt 05 05</p>
+            <h3 style="margin-top: 10px; text-transform: uppercase; text-decoration: underline;">LAPORAN REKAPITULASI TRANSAKSI PENJUALAN</h3>
+          </div>
+
+          <div class="table-responsive" style="margin-top: 15px;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>No</th>
+                  <th>Tanggal</th>
+                  <th>Nama Barang Utama</th>
+                  <th>Detail Item (Qty)</th>
+                  <th>Total (Rp)</th>
+                  <th class="no-print">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="laporanTbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 8: PROFIL & TOKO -->
+      <section id="profilTab" class="tab-content">
+        <div class="card">
+          <h2>👤 Pengaturan Profil Admin</h2>
+          <form onsubmit="saveProfilAdmin(event)" style="margin-top: 15px;">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="profilUsername" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label>Password Baru (Kosongkan jika tidak diubah)</label>
+                <input type="password" id="profilPassword" class="form-control">
+              </div>
+              <div class="form-group">
+                <label>Foto Profil Admin</label>
+                <input type="file" id="profilAvatarFile" class="form-control" accept="image/*" onchange="previewAvatar(event)">
+                <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+                  <img id="previewAvatarImg" class="avatar-preview hidden" alt="Avatar">
+                  <span id="previewAvatarIcon" class="avatar-icon-placeholder">👤</span>
+                  <button type="button" class="btn btn-danger btn-sm" onclick="hapusFotoAdmin()">Hapus Foto</button>
+                </div>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top: 15px;">Simpan Profil Admin</button>
+          </form>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+          <h2>🏪 Pengaturan Toko & Logo</h2>
+          <form onsubmit="saveProfilToko(event)" style="margin-top: 15px;">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Nama Toko</label>
+                <input type="text" id="tokoNama" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label>Nomor Telepon</label>
+                <input type="text" id="tokoTelp" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label>Alamat Toko</label>
+                <textarea id="tokoAlamat" class="form-control" rows="2" required></textarea>
+              </div>
+              <div class="form-group">
+                <label>Catatan Struk Nota</label>
+                <textarea id="tokoNotes" class="form-control" rows="2"></textarea>
+              </div>
+              <div class="form-group">
+                <label>Logo Toko / Perusahaan</label>
+                <input type="file" id="tokoLogoFile" class="form-control" accept="image/*" onchange="previewLogo(event)">
+                <div style="margin-top: 10px; display: flex; align-items: center; gap: 10px;">
+                  <img id="previewLogoImg" class="logo-preview hidden" alt="Logo Toko">
+                  <span id="previewLogoIcon" style="font-size: 2rem;">🏪</span>
+                  <button type="button" class="btn btn-danger btn-sm" onclick="hapusLogoToko()">Hapus Logo</button>
+                </div>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="margin-top: 15px;">Simpan Identitas Toko</button>
+          </form>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+          <h2>💾 Ekspor & Pemulihan Data JSON</h2>
+          <div style="margin-top: 15px; display: flex; gap: 15px; flex-wrap: wrap;">
+            <button type="button" class="btn btn-success" onclick="exportDataApp()">📥 Ekspor Data Backup (.json)</button>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <input type="file" id="importFileJson" class="form-control" accept=".json" style="max-width: 250px;">
+              <button type="button" class="btn btn-primary" onclick="importDataApp()">📤 Pulihkan Data JSON</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL CETAK NOTA KASIR -->
+  <div id="printModalOverlay" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div id="printReceiptContent" class="receipt-box printable-receipt"></div>
+      <div class="modal-actions no-print" style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+        <button class="btn btn-primary" onclick="triggerWindowPrint()">🖨️ Cetak Struk</button>
+        <button class="btn btn-secondary" onclick="closePrintModal()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
